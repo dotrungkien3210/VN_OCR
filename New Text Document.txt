@@ -1,0 +1,4 @@
+code implement and fix value from
+https://viblo.asia/p/trich-xuat-thong-tin-tu-chung-minh-thu-bJzKmaRwK9N
+download transformerocr.pth and put in "complete/config_text_recognition/"
+https://drive.google.com/file/d/1vD6N5TjCcLapojIT_mX-IOH4euJUsPbp/view?usp=sharing
