@@ -5,7 +5,7 @@ from object_detection.utils import label_map_util
 from object_detection.utils import config_util
 from object_detection.builders import model_builder
 
-
+import pandas as pd
 class Detector(object):
     def __init__(self, path_config, path_ckpt, path_to_labels):
         self.path_config = path_config
@@ -37,9 +37,9 @@ class Detector(object):
 
         return detection_model
 
+    print('---------------------------------------------------------------------------------------')
     def predict(self, image):
         image = np.asarray(image)
-
         input_tensor = tf.convert_to_tensor(np.expand_dims(image, 0), dtype=tf.float32)
         detections = self.detect_fn(input_tensor)
 
@@ -47,8 +47,76 @@ class Detector(object):
         # Convert to numpy arrays, and take index [0] to remove the batch dimension.
         # We're only interested in the first num_detections.
         num_detections = int(detections.pop('num_detections'))
+
         # num_detections = int(detections.pop('num_detections'))
         detections = {key: value[0, :num_detections].numpy() for key, value in detections.items()}
+
+        detections['num_detections'] = num_detections
+
+        # detection_classes should be ints.
+        detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
+
+        self.detection_scores = detections['detection_scores']
+        self.detection_classes = detections['detection_classes']
+        self.detection_boxes = detections['detection_boxes']
+
+        # draw bounding boxes and labels
+        image = self.draw(image)
+        return image
+
+    def draw(self, img):
+        #getCoor = pd.read_csv('../data/raw/box/999.csv')
+        #print(getCoor)
+        #exit()
+        height, width, _ = img.shape
+        for i, score in enumerate(self.detection_scores):
+            if score < 0.5:
+                continue
+
+            self.detection_classes[i] += 1
+            # if background, ignore
+            if self.detection_classes[i] == 0:
+                continue
+
+            label = str(self.category_index[self.detection_classes[i]]['name'])
+
+            ymin, xmin, ymax, xmax = self.detection_boxes[i]
+
+            real_xmin, real_ymin, real_xmax, real_ymax = int(xmin * width), int(ymin * height), int(xmax * width), int(
+                ymax * height)
+            cv2.rectangle(img, (real_xmin, real_ymin), (real_xmax, real_ymax), (0, 255, 0), 2)
+            cv2.putText(img, label, (real_xmin, real_ymin), cv2.FONT_HERSHEY_SIMPLEX, color=(0, 0, 255), fontScale=0.5)
+        return img
+
+    print('---------------------------------------------------------------------------------------')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    '''print('---------------------------------------------------------------------------------------')
+    def predict(self, image):
+        image = np.asarray(image)
+        input_tensor = tf.convert_to_tensor(np.expand_dims(image, 0), dtype=tf.float32)
+        detections = self.detect_fn(input_tensor)
+
+        # All outputs are batches tensors.
+        # Convert to numpy arrays, and take index [0] to remove the batch dimension.
+        # We're only interested in the first num_detections.
+        num_detections = int(detections.pop('num_detections'))
+
+        # num_detections = int(detections.pop('num_detections'))
+        detections = {key: value[0, :num_detections].numpy() for key, value in detections.items()}
+
         detections['num_detections'] = num_detections
 
         # detection_classes should be ints.
@@ -74,10 +142,13 @@ class Detector(object):
                 continue
 
             label = str(self.category_index[self.detection_classes[i]]['name'])
+
+
             ymin, xmin, ymax, xmax = self.detection_boxes[i]
             real_xmin, real_ymin, real_xmax, real_ymax = int(xmin * width), int(ymin * height), int(xmax * width), int(
                 ymax * height)
             cv2.rectangle(img, (real_xmin, real_ymin), (real_xmax, real_ymax), (0, 255, 0), 2)
             cv2.putText(img, label, (real_xmin, real_ymin), cv2.FONT_HERSHEY_SIMPLEX, color=(0, 0, 255), fontScale=0.5)
-
+        exit()
         return img
+'''

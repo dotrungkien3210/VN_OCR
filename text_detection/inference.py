@@ -3,11 +3,11 @@ from detector import Detector
 from detector_faster import DetectorFaster
 import argparse
 import time
-
+import matplotlib.pyplot as plt
 
 def get_args():
     arg = argparse.ArgumentParser()
-    arg.add_argument('-i', '--image_path', help='link to image', default='./999.jpg')
+    arg.add_argument('-i', '--image_path', help='link to image', default='./998.jpg')
     arg.add_argument('-o', '--option', help='detection or detection_faster', default='detection')
     return arg.parse_args()
 
@@ -25,10 +25,12 @@ if option == "detection":
 else:
     detector = DetectorFaster(path_to_model='./ssd_mobilenet_v2/exported_model/saved_model', path_to_labels='./scripts/label_map.pbtxt')
 
+
+
 image = cv2.imread(image_path)
 start = time.time()
 image = detector.predict(image)
 end = time.time()
 print('Elapsed time: ', end - start)
-cv2.imshow('results', image)
+cv2.imshow('a', image)
 cv2.waitKey(0)
